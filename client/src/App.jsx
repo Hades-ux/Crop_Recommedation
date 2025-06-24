@@ -54,13 +54,13 @@ function App() {
   };
 
   const ranges = {
-    N: { min: 0, max: 150 },
-    P: { min: 0, max: 150 },
-    K: { min: 0, max: 150 },
-    temperature: { min: 0, max: 50 },
-    humidity: { min: 0, max: 100 },
-    ph: { min: 0, max: 14 },
-    rainfall: { min: 0, max: 500 },
+    N: { min: 0, max: 150, unit: "ppm" },
+    P: { min: 0, max: 150, unit: "ppm" },
+    K: { min: 0, max: 150, unit: "ppm" },
+    temperature: { min: 0, max: 50, unit: "°C" },
+    humidity: { min: 0, max: 100, unit: "%" },
+    ph: { min: 0, max: 14, unit: "pH" },
+    rainfall: { min: 0, max: 500, unit: "mm" },
   };
 
   return (
@@ -71,26 +71,24 @@ function App() {
         </h1>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {["N", "P", "K", "temperature", "humidity", "ph", "rainfall"].map(
-            (field) => (
-              <div key={field} className="flex flex-col gap-1">
-                <label className="text-sm text-gray-600">
-                  {field.toUpperCase()} (Range: {ranges[field].min} -{" "}
-                  {ranges[field].max})
-                </label>
-                <input
-                  type="number"
-                  name={field}
-                  value={form[field]}
-                  onChange={handleChange}
-                  min={ranges[field].min}
-                  max={ranges[field].max}
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
-                  required
-                />
-              </div>
-            )
-          )}
+          {Object.keys(ranges).map((field) => (
+            <div key={field} className="flex flex-col gap-1">
+              <label className="text-sm text-gray-600">
+                {field.toUpperCase()} (Range: {ranges[field].min} -{" "}
+                {ranges[field].max} {ranges[field].unit})
+              </label>
+              <input
+                type="number"
+                name={field}
+                value={form[field]}
+                onChange={handleChange}
+                min={ranges[field].min}
+                max={ranges[field].max}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
+                required
+              />
+            </div>
+          ))}
         </div>
 
         <button
