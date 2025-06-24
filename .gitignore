@@ -12,7 +12,6 @@ yarn-error.log*
 # Python (Flask backend)
 __pycache__/
 *.py[cod]
-*.pkl
 *.sqlite3
 .env
 .env.*
