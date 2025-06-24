@@ -1,6 +1,4 @@
-# ------------------------
-# Backend: app.py (with absolute model path)
-# ------------------------
+# app.py
 
 from flask import Flask, request, jsonify
 from flask_cors import CORS
@@ -9,51 +7,50 @@ import pickle
 import warnings
 import os
 
+# Initialize app
 app = Flask(__name__)
 CORS(app)
 
-# Load the trained model using absolute path
+# Load model using absolute path
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-model_path = os.path.join(BASE_DIR, 'model.pkl')
-model = pickle.load(open(model_path, 'rb'))
+MODEL_PATH = os.path.join(BASE_DIR, "model.pkl")
 
-@app.route('/', methods=['GET'])
+try:
+    with open(MODEL_PATH, "rb") as f:
+        model = pickle.load(f)
+except Exception as e:
+    raise RuntimeError(f"Model not found or failed to load: {e}")
+
+# Health check
+@app.route("/", methods=["GET"])
 def home():
-    return "Backend running"
-def health():
     return jsonify({"status": "Crop prediction API running ✅"})
 
-@app.route('/predict', methods=['POST'])
+# Predict route
+@app.route("/predict", methods=["POST"])
 def predict():
     try:
         data = request.get_json()
 
-        # Input validation
-        required_fields = ['N', 'P', 'K', 'temperature', 'humidity', 'ph', 'rainfall']
-        for field in required_fields:
+        # Validate input
+        expected_fields = ['N', 'P', 'K', 'temperature', 'humidity', 'ph', 'rainfall']
+        for field in expected_fields:
             if field not in data:
-                return jsonify({'error': f'Missing field: {field}'}), 400
+                return jsonify({"error": f"Missing field: {field}"}), 400
 
-        # Convert to DataFrame to preserve feature names
-        input_df = pd.DataFrame([{
-            'N': data['N'],
-            'P': data['P'],
-            'K': data['K'],
-            'temperature': data['temperature'],
-            'humidity': data['humidity'],
-            'ph': data['ph'],
-            'rainfall': data['rainfall']
-        }])
+        # Prepare data
+        input_df = pd.DataFrame([{k: data[k] for k in expected_fields}])
 
-        # Predict with warning suppression
+        # Make prediction
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             prediction = model.predict(input_df)[0]
 
-        return jsonify({'prediction': prediction})
-
+        return jsonify({"prediction": prediction})
+    
     except Exception as e:
-        return jsonify({'error': str(e)}), 400
+        return jsonify({"error": str(e)}), 500
 
-if __name__ == '__main__':
+# Run locally (not used on Render)
+if __name__ == "__main__":
     app.run()
