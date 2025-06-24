@@ -1,5 +1,15 @@
 import { useState } from "react";
 
+const ranges = {
+  N: { min: 0, max: 150, unit: "ppm" },
+  P: { min: 0, max: 150, unit: "ppm" },
+  K: { min: 0, max: 150, unit: "ppm" },
+  temperature: { min: 0, max: 50, unit: "°C" },
+  humidity: { min: 0, max: 100, unit: "%" },
+  ph: { min: 0, max: 14, unit: "pH" },
+  rainfall: { min: 0, max: 500, unit: "mm" },
+};
+
 function App() {
   const [form, setForm] = useState({
     N: "",
@@ -10,7 +20,6 @@ function App() {
     ph: "",
     rainfall: "",
   });
-
   const [crop, setCrop] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -23,69 +32,50 @@ function App() {
     setError("");
     setCrop(null);
     setLoading(true);
+    const API_URL = import.meta.env.VITE_API_URL;
 
     try {
-      const res = await fetch("https://crop-backend.onrender.com/predict", {
+      const res = await fetch(`${API_URL}/predict`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          N: +form.N,
-          P: +form.P,
-          K: +form.K,
-          temperature: +form.temperature,
-          humidity: +form.humidity,
-          ph: +form.ph,
-          rainfall: +form.rainfall,
-        }),
+        body: JSON.stringify(
+          Object.fromEntries(
+            Object.entries(form).map(([key, val]) => [key, +val])
+          )
+        ),
       });
 
       const data = await res.json();
       setLoading(false);
-
-      if (data.error) {
-        setError(data.error);
-      } else {
-        setCrop(data.prediction);
-      }
+      if (data.error) setError(data.error);
+      else setCrop(data.prediction);
     } catch (e) {
       setLoading(false);
       setError("Server not reachable. Check if backend is running.");
     }
   };
 
-  const ranges = {
-    N: { min: 0, max: 150, unit: "ppm" },
-    P: { min: 0, max: 150, unit: "ppm" },
-    K: { min: 0, max: 150, unit: "ppm" },
-    temperature: { min: 0, max: 50, unit: "°C" },
-    humidity: { min: 0, max: 100, unit: "%" },
-    ph: { min: 0, max: 14, unit: "pH" },
-    rainfall: { min: 0, max: 500, unit: "mm" },
-  };
-
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center px-4 py-10">
-      <div className="w-full max-w-xl border border-gray-200 p-8 rounded-xl shadow-sm">
-        <h1 className="text-2xl font-semibold text-gray-800 mb-8 text-center">
-          Crop Recommendation
+    <div className="min-h-screen bg-white flex items-center justify-center p-6">
+      <div className="w-full max-w-2xl border border-gray-300 shadow-md rounded-2xl p-8 bg-gray-50">
+        <h1 className="text-2xl font-bold text-center mb-6">
+          🌾 Crop Recommendation
         </h1>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {Object.keys(ranges).map((field) => (
-            <div key={field} className="flex flex-col gap-1">
-              <label className="text-sm text-gray-600">
-                {field.toUpperCase()} (Range: {ranges[field].min} -{" "}
-                {ranges[field].max} {ranges[field].unit})
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {Object.keys(ranges).map((key) => (
+            <div key={key} className="flex flex-col">
+              <label className="text-sm text-gray-600 mb-1">
+                {key.toUpperCase()} ({ranges[key].min}–{ranges[key].max}{" "}
+                {ranges[key].unit})
               </label>
               <input
                 type="number"
-                name={field}
-                value={form[field]}
+                name={key}
+                value={form[key]}
+                min={ranges[key].min}
+                max={ranges[key].max}
                 onChange={handleChange}
-                min={ranges[field].min}
-                max={ranges[field].max}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
-                required
+                className="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
               />
             </div>
           ))}
@@ -94,19 +84,19 @@ function App() {
         <button
           onClick={handleSubmit}
           disabled={loading}
-          className="w-full mt-6 bg-green-600 text-white text-sm font-medium py-2.5 rounded-lg hover:bg-green-700 transition disabled:opacity-50"
+          className="mt-6 w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2.5 rounded-lg transition disabled:opacity-50"
         >
           {loading ? "Predicting..." : "Get Recommendation"}
         </button>
 
         {error && (
-          <div className="mt-4 text-center text-sm text-red-500">{error}</div>
+          <p className="mt-4 text-center text-red-600 text-sm">{error}</p>
         )}
 
         {crop && (
-          <div className="mt-6 text-center text-green-700 text-base font-medium">
-            Recommended Crop: <span className="font-semibold">{crop}</span>
-          </div>
+          <p className="mt-6 text-center text-green-700 font-semibold text-lg">
+            🌱 Recommended Crop: <span className="underline">{crop}</span>
+          </p>
         )}
       </div>
     </div>
