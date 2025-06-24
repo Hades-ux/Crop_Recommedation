@@ -18,6 +18,8 @@ model_path = os.path.join(BASE_DIR, 'model.pkl')
 model = pickle.load(open(model_path, 'rb'))
 
 @app.route('/', methods=['GET'])
+def home():
+    return "Backend running"
 def health():
     return jsonify({"status": "Crop prediction API running ✅"})
 
