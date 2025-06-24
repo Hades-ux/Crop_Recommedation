@@ -25,7 +25,7 @@ def home():
     return jsonify({"status": "Crop prediction API running ✅"})
 
 # Predict route
-@app.route("/predict", methods=["POST"])
+@app.route("/", methods=["POST"])
 def predict():
     try:
         data = request.get_json()
