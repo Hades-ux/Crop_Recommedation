@@ -1,5 +1,3 @@
-# app.py
-
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import pandas as pd
@@ -51,6 +49,5 @@ def predict():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# Run locally (not used on Render)
 if __name__ == "__main__":
     app.run()
